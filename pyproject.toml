@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edoop-cli"
+version = "0.1.0"
+description = "Command-line interface for the edoop.de parent inbox (Elternpostfach): messages, absences/sick reports, appointments and more."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "edoop-cli contributors" }]
+keywords = ["edoop", "elternpostfach", "schule", "cli", "krankmeldung"]
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications",
+]
+
+dependencies = [
+    "requests>=2.28",
+]
+
+[project.optional-dependencies]
+keyring = ["keyring>=23"]
+dev = ["pytest>=7", "requests-mock>=1.11"]
+
+[project.scripts]
+edoop = "edoop.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/SZzip/SZzip"
+"Bug Tracker" = "https://github.com/SZzip/SZzip/issues"
+
+[tool.setuptools.packages.find]
+include = ["edoop*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

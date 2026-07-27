@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+.venv/
+venv/
+env/
+
+# Test / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local edoop state (never commit sessions or credentials)
+config.local.*
+*.session.json
+session.json
+.edoop/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
