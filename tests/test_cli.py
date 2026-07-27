@@ -68,6 +68,36 @@ def test_config_show_runs(monkeypatch, tmp_path, capsys):
     assert "base_url" in out
 
 
+def test_broken_pipe_exits_quietly(monkeypatch, capsys):
+    # Simulate a downstream `| head` closing the pipe: the command's handler
+    # raises BrokenPipeError and main() must swallow it (return 141), not crash.
+    import edoop.cli as cli
+
+    def boom(_args):
+        raise BrokenPipeError()
+
+    monkeypatch.setattr(cli, "cmd_whoami", boom)
+    # Rebuild parser dispatch by calling through main with a command that maps
+    # to the patched function.
+    parser = cli.build_parser()
+    args = parser.parse_args(["whoami"])
+    args.func = boom
+    monkeypatch.setattr(cli, "build_parser", lambda: _StubParser(args))
+    rc = cli.main(["whoami"])
+    assert rc == 141
+
+
+class _StubParser:
+    def __init__(self, args):
+        self._args = args
+
+    def parse_args(self, argv=None):
+        return self._args
+
+    def print_help(self):
+        pass
+
+
 def test_config_endpoints_lists_defaults(monkeypatch, tmp_path, capsys):
     monkeypatch.setenv("EDOOP_CONFIG", str(tmp_path / "cfg.json"))
     rc = main(["config", "endpoints"])

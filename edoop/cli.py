@@ -410,6 +410,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     except EdoopError as exc:
         _err(str(exc))
         return 2
+    except BrokenPipeError:  # pragma: no cover
+        # Downstream (e.g. `| head`) closed the pipe. Exit quietly like a well-
+        # behaved Unix tool instead of dumping a traceback. Redirect stdout to
+        # devnull so the interpreter's final flush doesn't raise again.
+        try:
+            import os
+
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        except OSError:
+            pass
+        return 141
     except KeyboardInterrupt:  # pragma: no cover
         _err("Abgebrochen.")
         return 130
