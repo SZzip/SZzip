@@ -33,7 +33,7 @@ def test_login_token_flow_persists_session(tmp_path):
     cfg = make_config(tmp_path)
     with requests_mock.Mocker() as m:
         m.get("https://edoop.test/sanctum/csrf-cookie", status_code=204)
-        m.post("https://edoop.test/api/login", json={"token": "T0KEN", "user": {"id": 1}})
+        m.post("https://edoop.test/api/parent", json={"token": "T0KEN", "user": {"id": 1}})
         client = EdoopClient(cfg, session=Session())
         session = client.login("p@example.com", "secret")
 
@@ -44,12 +44,15 @@ def test_login_token_flow_persists_session(tmp_path):
     assert saved["token"] == "T0KEN"
     # Auth header is applied for subsequent requests.
     assert client.http.headers["Authorization"] == "Bearer T0KEN"
+    assert m.last_request.json()["email"] == "p@example.com"
+    assert m.last_request.json()["eMail"] == "p@example.com"
 
 
 def test_login_probes_candidates_until_success(tmp_path):
     cfg = make_config(tmp_path)
     with requests_mock.Mocker() as m:
         m.get("https://edoop.test/sanctum/csrf-cookie", status_code=204)
+        m.post("https://edoop.test/api/parent", status_code=404)
         m.post("https://edoop.test/api/login", status_code=404)
         m.post("https://edoop.test/api/auth/login", json={"access_token": "AT"})
         client = EdoopClient(cfg, session=Session())
@@ -61,9 +64,19 @@ def test_login_rejected_credentials_raises(tmp_path):
     cfg = make_config(tmp_path)
     with requests_mock.Mocker() as m:
         m.get("https://edoop.test/sanctum/csrf-cookie", status_code=204)
-        m.post("https://edoop.test/api/login", status_code=422, json={"message": "invalid"})
+        m.post("https://edoop.test/api/parent", status_code=403, json={"message": "invalid credentials"})
         client = EdoopClient(cfg, session=Session())
-        with pytest.raises(AuthError):
+        with pytest.raises(AuthError, match="invalid credentials"):
+            client.login("p@example.com", "secret")
+
+
+def test_login_bad_request_raises_auth_error(tmp_path):
+    cfg = make_config(tmp_path)
+    with requests_mock.Mocker() as m:
+        m.get("https://edoop.test/sanctum/csrf-cookie", status_code=204)
+        m.post("https://edoop.test/api/parent", status_code=400, json={"message": "E-Mail-Adresse und Passwort fehlen"})
+        client = EdoopClient(cfg, session=Session())
+        with pytest.raises(AuthError, match="E-Mail-Adresse und Passwort fehlen"):
             client.login("p@example.com", "secret")
 
 
@@ -72,13 +85,14 @@ def test_login_cookie_only_flow(tmp_path):
     with requests_mock.Mocker() as m:
         m.get("https://edoop.test/sanctum/csrf-cookie", status_code=204)
         m.post(
-            "https://edoop.test/api/login",
-            json={"ok": True},
-            cookies={"edoop_session": "abc"},
+            "https://edoop.test/api/parent",
+            json={"id": "92492", "firstName": "Test"},
+            cookies={"sessionid": "abc"},
         )
         client = EdoopClient(cfg, session=Session())
         session = client.login("p@example.com", "secret")
-    assert any(c["name"] == "edoop_session" for c in session.cookies)
+    assert any(c["name"] == "sessionid" for c in session.cookies)
+    assert session.user == {"id": "92492", "firstName": "Test"}
 
 
 def test_request_requires_auth(tmp_path):

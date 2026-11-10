@@ -41,12 +41,12 @@ from typing import Dict
 
 DEFAULT_ENDPOINTS: Dict[str, str] = {
     # Auth
-    "login": "/api/login",
+    "login": "/api/parent",
     "logout": "/api/logout",
     "csrf_cookie": "/sanctum/csrf-cookie",
     # Identity / profile
-    "me": "/api/me",
-    "profile": "/api/profile",
+    "me": "/api/parent",
+    "profile": "/api/parent",
     "children": "/api/children",
     # Messages / channels (Nachrichten)
     "messages_list": "/api/channels",
