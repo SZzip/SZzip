@@ -107,7 +107,7 @@ def test_request_401_maps_to_not_logged_in(tmp_path):
     sess = Session(token="T", base_url=cfg.base_url)
     client = EdoopClient(cfg, session=sess)
     with requests_mock.Mocker() as m:
-        m.get("https://edoop.test/api/channels", status_code=401)
+        m.get("https://edoop.test/api/posts/channels", status_code=401)
         with pytest.raises(NotLoggedInError):
             client.messages()
 
