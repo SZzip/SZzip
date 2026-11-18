@@ -41,17 +41,20 @@ from typing import Dict
 
 DEFAULT_ENDPOINTS: Dict[str, str] = {
     # Auth
-    "login": "/api/login",
+    "login": "/api/parent",
     "logout": "/api/logout",
     "csrf_cookie": "/sanctum/csrf-cookie",
     # Identity / profile
-    "me": "/api/me",
-    "profile": "/api/profile",
-    "children": "/api/children",
+    "me": "/api/parent",
+    "profile": "/api/parent",
+    "children": "/api/students",
     # Messages / channels (Nachrichten)
-    "messages_list": "/api/channels",
-    "channel_messages": "/api/channels/{channel_id}/messages",
-    "message_send": "/api/channels/{channel_id}/messages",
+    "messages_list": "/api/posts/channels",
+    "channel_messages": "/api/posts?schoolClassId={channel_id}",
+    "message_send": "/api/conversations/{channel_id}/messages",
+    "posts_inbox": "/api/posts",
+    "post_detail": "/api/posts/{post_id}",
+    "post_document": "/api/posts/{post_id}/documents/{document_id}",
     # Absences / sick reports (Abwesenheiten / Krankmeldung)
     "absences_list": "/api/absences",
     "absences_create": "/api/absences",

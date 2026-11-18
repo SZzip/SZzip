@@ -22,6 +22,7 @@ from .session import Session
 # edoop publishes no API docs, so login is auto-probed; pin the working one with
 # ``edoop login --login-path`` or config ``endpoints.login`` once you know it.
 LOGIN_CANDIDATES: Tuple[str, ...] = (
+    "/api/parent",
     "/api/login",
     "/api/auth/login",
     "/api/v1/login",
@@ -72,6 +73,8 @@ class EdoopClient:
                 "Accept": "application/json",
                 "User-Agent": config.user_agent,
                 "X-Requested-With": "XMLHttpRequest",
+                "Origin": config.base_url,
+                "Referer": f"{config.base_url}/landing/login",
             }
         )
         self.http.verify = config.verify_tls
@@ -177,7 +180,11 @@ class EdoopClient:
         """
         self._preflight_csrf()
 
-        payload: Dict[str, Any] = {"email": email, "password": password}
+        payload: Dict[str, Any] = {
+            "email": email,
+            "eMail": email,
+            "password": password,
+        }
         if extra_fields:
             payload.update(extra_fields)
 
@@ -201,7 +208,7 @@ class EdoopClient:
             if resp.status_code in (404, 405):
                 last_error = f"{path} -> HTTP {resp.status_code}"
                 continue
-            if resp.status_code in (401, 403, 419, 422):
+            if resp.status_code in (400, 401, 403, 419, 422):
                 # Endpoint exists but rejected the credentials -> stop probing.
                 raise AuthError(
                     f"Anmeldung abgelehnt (HTTP {resp.status_code}). "
@@ -232,7 +239,7 @@ class EdoopClient:
                     self.http.cookies.set_cookie(cookie)
                 self.session.capture_from(self.http)
                 if isinstance(body, dict):
-                    self.session.user = body.get("user") or body.get("data") or None
+                    self.session.user = body.get("user") or body.get("data") or body
                 self.session.save(self.config.session_file)
                 return self.session
 
